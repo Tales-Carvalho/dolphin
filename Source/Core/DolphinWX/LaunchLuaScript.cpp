@@ -118,7 +118,7 @@ void LuaWindow::OnButtonPressed(wxCommandEvent& event)
 
 	if (event.GetId() == 2) //Start
 	{
-		if (File::Exists(File::GetExeDirectory() + "\\Scripts\\" + FileName) == false)
+		if (File::Exists("Scripts/" + FileName) == false)
 		{
 			wxMessageBox("Script file does not exist anymore!");
 			return;
@@ -152,7 +152,7 @@ void LuaWindow::Shown()
 
 	//Find all Lua files
 	CFileSearch::XStringVector Directory;
-	Directory.push_back(File::GetExeDirectory() + "\\Scripts");
+	Directory.push_back("Scripts");
 
 	CFileSearch::XStringVector Extension;
 	Extension.push_back("*.lua");

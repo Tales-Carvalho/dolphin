@@ -148,6 +148,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
+			LUA/Lua.cpp
 			PowerPC/PowerPC.cpp
 			PowerPC/PPCAnalyst.cpp
 			PowerPC/PPCCache.cpp
@@ -231,6 +232,7 @@ elseif(_M_ARM_64)
 endif()
 
 set(LIBS
+	lua
 	audiocommon
 	bdisasm
 	common

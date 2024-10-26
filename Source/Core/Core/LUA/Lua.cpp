@@ -38,8 +38,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "Core/Host.h"
 
-#include <lua.hpp> //Dragonbane
-
 
 //Lua Functions (C)
 int ReadValue8(lua_State *L)
@@ -861,7 +859,7 @@ namespace Lua
 
 		//Auto launch Scripts that start with _
 		CFileSearch::XStringVector Directory;
-		Directory.push_back(File::GetExeDirectory() + "\\Scripts");
+		Directory.push_back("/Scripts"); // TODO: instead implement File::GetExeDirectory() for Linux
 
 		CFileSearch::XStringVector Extension;
 		Extension.push_back("*.lua");
@@ -968,7 +966,7 @@ namespace Lua
 				//Unique to normal Scripts
 				lua_register(it->luaState, "CancelScript", CancelScript);
 
-				std::string file = File::GetExeDirectory() + "\\Scripts\\" + it->fileName;
+				std::string file = "Scripts/" + it->fileName; // TODO: instead implement File::GetExeDirectory() for Linux
 
 				status = luaL_dofile(it->luaState, file.c_str());
 

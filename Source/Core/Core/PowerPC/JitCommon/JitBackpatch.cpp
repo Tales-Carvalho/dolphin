@@ -101,7 +101,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		if (it2 == pcAtLoc.end())
 		{
 			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
-			return nullptr;
+			return false;
 		}
 
 		u32 pc = it2->second;
