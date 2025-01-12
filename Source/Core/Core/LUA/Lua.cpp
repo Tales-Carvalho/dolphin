@@ -1161,15 +1161,19 @@ namespace Lua
 		{
 			if (it->hasStarted && std::find(it->breakpoints.begin(), it->breakpoints.end(), address) != it->breakpoints.end())
 			{
-				int status = 0;
-				// TODO: We need to pass the address to lua. Either expose a function to do that or pass as arg to onBreakpoint (is it possible?)
-				lua_getglobal(it->luaState, "onBreakpoint");  // TODO: can we check if onBreakpoint exists before calling?
-				status = lua_pcall(it->luaState, 0, LUA_MULTRET, 0);
-				if (status != 0)
+				lua_getglobal(it->luaState, "onBreakpoint");
+				if (lua_isfunction(it->luaState, 1))
 				{
-					HandleLuaErrors(it->luaState, status);
-					lua_close(it->luaState);
+					lua_pushnumber(it->luaState, address);
+					int status = lua_pcall(it->luaState, 1, LUA_MULTRET, 0);
+					if (status != 0)
+					{
+						HandleLuaErrors(it->luaState, status);
+						lua_close(it->luaState);
+					}
 				}
+				else
+					lua_pop(it->luaState, 1);
 			}
 			++it;
 		}
