@@ -119,6 +119,8 @@ extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 
+extern BreakPoints lua_breakpoints;
+
 void Init(int cpu_core);
 void Shutdown();
 void DoState(PointerWrap &p);

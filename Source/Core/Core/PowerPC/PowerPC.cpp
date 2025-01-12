@@ -16,6 +16,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 
+#include "Core/LUA/Lua.h"  // TODO: Is including Lua a good approach here? This looks too low level to import Lua, but Idk
+
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -39,6 +41,8 @@ Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
+
+BreakPoints lua_breakpoints;
 
 u32 CompactCR()
 {
@@ -165,6 +169,7 @@ void Init(int cpu_core)
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		breakpoints.ClearAllTemporary();
+	lua_breakpoints.Clear();
 }
 
 void Shutdown()
@@ -494,6 +499,10 @@ void CheckExternalExceptions()
 
 void CheckBreakPoints()
 {
+	if (PowerPC::lua_breakpoints.IsAddressBreakPoint(PC))
+	{
+		Lua::HandleBreakpoint(PC);
+	}
 	if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 	{
 		PowerPC::Pause();

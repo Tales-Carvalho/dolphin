@@ -27,6 +27,7 @@ namespace Lua
 	struct LuaScript
 	{
 		std::string fileName;
+		std::list<u32> breakpoints;
 		lua_State *luaState;
 		bool hasStarted;
 		bool requestedTermination;
@@ -46,6 +47,7 @@ namespace Lua
 	void TerminateScript(std::string fileName);
 	bool IsScriptRunning(std::string fileName);
 	void UpdateScripts(GCPadStatus* PadStatus);
+	void HandleBreakpoint(u32 address);
 
 	void iPressButton(const char* button);
 	void iReleaseButton(const char* button);
@@ -55,5 +57,7 @@ namespace Lua
 	void iSetCStickY(int yVal);
 	void iSaveState(bool toSlot, int slotID, std::string fileName);
 	void iLoadState(bool fromSlot, int slotID, std::string fileName);
+	void iRegisterBreakpoint(u32 address);
+	void iDeregisterBreakpoint(u32 address);
 	void iCancelCurrentScript();
 }

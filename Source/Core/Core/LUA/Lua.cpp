@@ -559,6 +559,34 @@ int MsgBox(lua_State *L)
 	return 0; // number of return values
 }
 
+int RegisterBreakpoint(lua_State* L)
+{
+	int argc = lua_gettop(L);
+
+	if (argc < 1)
+		return 0;
+
+	u32 address = lua_tointeger(L, 1);
+
+	Lua::iRegisterBreakpoint(address);
+
+	return 0;
+}
+
+int DeregisterBreakpoint(lua_State *L)
+{
+	int argc = lua_gettop(L);
+
+	if (argc < 1)
+		return 0;
+
+	u32 address = lua_tointeger(L, 1);
+
+	Lua::iDeregisterBreakpoint(address);
+
+	return 0;
+}
+
 int CancelScript(lua_State *L)
 {
 	int argc = lua_gettop(L);
@@ -793,6 +821,39 @@ namespace Lua
 
 		Host_UpdateMainFrame();
 	}
+
+	void iRegisterBreakpoint(u32 address)
+	{
+		PowerPC::lua_breakpoints.Add(address);
+
+		int n = 0;
+		for (std::list<LuaScript>::iterator it = scriptList.begin(); it != scriptList.end(); ++it)
+		{
+			if (currScriptID == n)
+			{
+				it->breakpoints.push_back(address);
+				break;
+			}
+			++n;
+		}
+	}
+
+	void iDeregisterBreakpoint(u32 address)
+	{
+		PowerPC::lua_breakpoints.Remove(address);
+		
+		int n = 0;
+		for (std::list<LuaScript>::iterator it = scriptList.begin(); it != scriptList.end(); ++it)
+		{
+			if (currScriptID == n)
+			{
+				it->breakpoints.remove(address);
+				break;
+			}
+			++n;
+		}
+	}
+
 	void iCancelCurrentScript()
 	{
 		int n = 0;
@@ -850,6 +911,9 @@ namespace Lua
 		lua_register(luaState, "CameraGetRotation", CameraGetRotation);
 		
 		lua_register(luaState, "SetScreenText", SetScreenText);
+
+		lua_register(luaState, "RegisterBreakpoint", RegisterBreakpoint);
+		lua_register(luaState, "DeregisterBreakpoint", DeregisterBreakpoint);
 		
 		lua_register(luaState, "PauseEmulation", PauseEmulation);
 	}
@@ -1087,6 +1151,28 @@ namespace Lua
 
 		//Send changed Pad back
 		*PadStatus = PadLocal;
+	}
+
+	void HandleBreakpoint(u32 address)
+	{
+		std::list<LuaScript>::iterator it = scriptList.begin();
+
+		while (it != scriptList.end())
+		{
+			if (it->hasStarted && std::find(it->breakpoints.begin(), it->breakpoints.end(), address) != it->breakpoints.end())
+			{
+				int status = 0;
+				// TODO: We need to pass the address to lua. Either expose a function to do that or pass as arg to onBreakpoint (is it possible?)
+				lua_getglobal(it->luaState, "onBreakpoint");  // TODO: can we check if onBreakpoint exists before calling?
+				status = lua_pcall(it->luaState, 0, LUA_MULTRET, 0);
+				if (status != 0)
+				{
+					HandleLuaErrors(it->luaState, status);
+					lua_close(it->luaState);
+				}
+			}
+			++it;
+		}
 	}
 
 }
