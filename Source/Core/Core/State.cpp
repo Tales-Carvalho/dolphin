@@ -119,7 +119,7 @@ static void DoState(PointerWrap &p)
 	Movie::DoState(p);
 	p.DoMarker("Movie");
 #if defined(HAVE_LIBAV) || defined (WIN32)
-	AVIDump::DoState();
+	// AVIDump::DoState();
 #endif
 }
 

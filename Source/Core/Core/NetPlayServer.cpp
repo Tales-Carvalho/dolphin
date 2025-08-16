@@ -18,7 +18,7 @@ NetPlayServer::~NetPlayServer()
 		m_socket.Close();
 	}
 
-#ifdef USE_UPNP
+#if _WIN_32
 	if (m_upnp_thread.joinable())
 		m_upnp_thread.join();
 	m_upnp_thread = std::thread(&NetPlayServer::unmapPortThread);
@@ -590,7 +590,7 @@ void NetPlayServer::KickPlayer(u8 player)
 	}
 }
 
-#ifdef USE_UPNP
+#if _WIN_32
 #include <miniwget.h>
 #include <miniupnpc.h>
 #include <upnpcommands.h>

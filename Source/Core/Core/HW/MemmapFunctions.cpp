@@ -370,7 +370,7 @@ std::string Read_String(const u32 _Address, int count)
 {
     std::string output = "";
 
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
         u32 address = _Address + i;
         std::string result;
@@ -397,7 +397,7 @@ void Write_String(const std::string text, const u32 startAddress)
 {
     size_t count = text.length();
 
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
         u32 address = startAddress + i;
         const char letter = text.at(i);

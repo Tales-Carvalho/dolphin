@@ -22,6 +22,6 @@ private:
 	char *temp_buffer;
 
 	static const int TEMP_BUFFER_SIZE = 64 * 1024;
-	static const int CHAR_WIDTH = 10;
-	static const int CHAR_HEIGHT = 15;
+	static const int RF_CHAR_WIDTH = 10;
+	static const int RF_CHAR_HEIGHT = 15;
 };

@@ -342,7 +342,7 @@ static void InitAVCodec()
 	static bool first_run = true;
 	if (first_run)
 	{
-		av_register_all();
+		// av_register_all();
 		first_run = false;
 	}
 }
@@ -367,9 +367,9 @@ bool AVIDump::CreateFile()
 	AVCodec* codec = nullptr;
 
 	s_format_context = avformat_alloc_context();
-	snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
+	snprintf(s_format_context->url, sizeof(s_format_context->url), "%s",
 	         (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
-	File::CreateFullPath(s_format_context->filename);
+	File::CreateFullPath(s_format_context->url);
 
 	if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) ||
 	    !(s_stream = avformat_new_stream(s_format_context, codec)))
@@ -377,18 +377,18 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	s_stream->codec->codec_id = g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1
+	s_stream->codecpar->codec_id = g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1
 	                                              : s_format_context->oformat->video_codec;
-	s_stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
-	s_stream->codec->bit_rate = 400000;
-	s_stream->codec->width = s_width;
-	s_stream->codec->height = s_height;
-	s_stream->codec->time_base = (AVRational){1, static_cast<int>(VideoInterface::TargetRefreshRate)};
-	s_stream->codec->gop_size = 12;
-	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
+	s_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+	s_stream->codecpar->bit_rate = 400000;
+	s_stream->codecpar->width = s_width;
+	s_stream->codecpar->height = s_height;
+	s_stream->codecpar->framerate = (AVRational){1, static_cast<int>(VideoInterface::TargetRefreshRate)};
+	// s_stream->codecpar->gop_size = 12;
+	s_stream->codecpar->format = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
-	if (!(codec = avcodec_find_encoder(s_stream->codec->codec_id)) ||
-	    (avcodec_open2(s_stream->codec, codec, nullptr) < 0))
+	if (!avcodec_find_encoder(s_stream->codecpar->codec_id) ||
+	    (avcodec_open2(s_stream->codecpar, codec, nullptr) < 0))
 	{
 		return false;
 	}
@@ -396,15 +396,15 @@ bool AVIDump::CreateFile()
 	s_src_frame = av_frame_alloc();
 	s_scaled_frame = av_frame_alloc();
 
-	s_size = avpicture_get_size(s_stream->codec->pix_fmt, s_width, s_height);
+	s_size = avpicture_get_size(s_stream->codecpar->format, s_width, s_height);
 
 	s_yuv_buffer = new uint8_t[s_size];
-	avpicture_fill((AVPicture*)s_scaled_frame, s_yuv_buffer, s_stream->codec->pix_fmt, s_width, s_height);
+	avpicture_fill((AVPicture*)s_scaled_frame, s_yuv_buffer, s_stream->codecpar->format, s_width, s_height);
 
-	NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_format_context->filename);
-	if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0)
+	NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_format_context->url);
+	if (avio_open(&s_format_context->pb, s_format_context->url, AVIO_FLAG_WRITE) < 0)
 	{
-		WARN_LOG(VIDEO, "Could not open %s", s_format_context->filename);
+		WARN_LOG(VIDEO, "Could not open %s", s_format_context->url);
 		return false;
 	}
 
@@ -428,14 +428,14 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	// width and height
 	if ((s_sws_context = sws_getCachedContext(s_sws_context,
 	                                          width, height, AV_PIX_FMT_BGR24,
-	                                          s_width, s_height, s_stream->codec->pix_fmt,
+	                                          s_width, s_height, s_stream->codecpar->format,
 	                                          SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{
 		sws_scale(s_sws_context, s_src_frame->data, s_src_frame->linesize, 0,
 		          height, s_scaled_frame->data, s_scaled_frame->linesize);
 	}
 
-	s_scaled_frame->format = s_stream->codec->pix_fmt;
+	s_scaled_frame->format = s_stream->codecpar->format;
 	s_scaled_frame->width = s_width;
 	s_scaled_frame->height = s_height;
 
@@ -455,15 +455,15 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	else
 	{
 		delta = CoreTiming::GetTicks() - s_last_frame;
-		last_pts = (s_last_pts * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+		last_pts = (s_last_pts * s_stream->codecpar->framerate.den) / SystemTimers::GetTicksPerSecond();
 	}
 	u64 pts_in_ticks = s_last_pts + delta;
-	s_scaled_frame->pts = (pts_in_ticks * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+	s_scaled_frame->pts = (pts_in_ticks * s_stream->codecpar->framerate.den) / SystemTimers::GetTicksPerSecond();
 	if (s_scaled_frame->pts != last_pts)
 	{
 		s_last_frame = CoreTiming::GetTicks();
 		s_last_pts = pts_in_ticks;
-		error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+		error = avcodec_encode_video2(s_stream->codecpar, &pkt, s_scaled_frame, &got_packet);
 	}
 	while (!error && got_packet)
 	{
@@ -471,21 +471,21 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		if (pkt.pts != AV_NOPTS_VALUE)
 		{
 			pkt.pts = av_rescale_q(pkt.pts,
-			                       s_stream->codec->time_base, s_stream->time_base);
+			                       s_stream->codecpar->framerate, s_stream->time_base);
 		}
 		if (pkt.dts != AV_NOPTS_VALUE)
 		{
 			pkt.dts = av_rescale_q(pkt.dts,
-			                       s_stream->codec->time_base, s_stream->time_base);
+			                       s_stream->codecpar->framerate, s_stream->time_base);
 		}
-		if (s_stream->codec->coded_frame->key_frame)
+		if (s_stream->codecpar->coded_frame->key_frame)
 			pkt.flags |= AV_PKT_FLAG_KEY;
 		pkt.stream_index = s_stream->index;
 		av_interleaved_write_frame(s_format_context, &pkt);
 
 		// Handle delayed frames.
 		PreparePacket(&pkt);
-		error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
+		error = avcodec_encode_video2(s_stream->codecpar, &pkt, nullptr, &got_packet);
 	}
 	if (error)
 		ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
@@ -502,8 +502,8 @@ void AVIDump::CloseFile()
 {
 	if (s_stream)
 	{
-		if (s_stream->codec)
-			avcodec_close(s_stream->codec);
+		if (s_stream->codecpar)
+			avcodec_close(s_stream->codecpar);
 		av_free(s_stream);
 		s_stream = nullptr;
 	}

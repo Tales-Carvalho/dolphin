@@ -1411,10 +1411,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
-	if (SConfig::GetInstance().m_DumpFrames && !data.empty())
-	{
-		AVIDump::AddFrame(&data[0], w, h);
-	}
+	// if (SConfig::GetInstance().m_DumpFrames && !data.empty())
+	// {
+	// 	AVIDump::AddFrame(&data[0], w, h);
+	// }
 #endif
 }
 
@@ -1524,66 +1524,66 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
-		if (SConfig::GetInstance().m_DumpFrames)
-		{
-			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
-				     h != flipped_trc.GetHeight())
-			{
-				w = flipped_trc.GetWidth();
-				h = flipped_trc.GetHeight();
-				frame_data.resize(3 * w * h);
-			}
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-			if (w > 0 && h > 0)
-			{
-				if (!bLastFrameDumped)
-				{
-					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(nullptr, w, h);
-					#else
-						bAVIDumping = AVIDump::Start(w, h);
-					#endif
-					if (!bAVIDumping)
-					{
-						OSD::AddMessage("AVIDump Start failed", 2000);
-					}
-					else
-					{
-						OSD::AddMessage(StringFromFormat(
-									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
-					}
-				}
-				if (bAVIDumping)
-				{
-					#ifndef _WIN32
-						FlipImageData(&frame_data[0], w, h);
-					#endif
-
-						AVIDump::AddFrame(&frame_data[0], w, h);
-				}
-
-				bLastFrameDumped = true;
-			}
-			else
-			{
-				NOTICE_LOG(VIDEO, "Error reading framebuffer");
-			}
-		}
-		else
-		{
-			if (bLastFrameDumped && bAVIDumping)
-			{
-				std::vector<u8>().swap(frame_data);
-				w = h = 0;
-				AVIDump::Stop();
-				bAVIDumping = false;
-				OSD::AddMessage("Stop dumping frames", 2000);
-			}
-			bLastFrameDumped = false;
-		}
+		// if (SConfig::GetInstance().m_DumpFrames)
+		// {
+		// 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+		// 	if (frame_data.empty() || w != flipped_trc.GetWidth() ||
+		// 		     h != flipped_trc.GetHeight())
+		// 	{
+		// 		w = flipped_trc.GetWidth();
+		// 		h = flipped_trc.GetHeight();
+		// 		frame_data.resize(3 * w * h);
+		// 	}
+		// 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		// 	glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+		// 	if (w > 0 && h > 0)
+		// 	{
+		// 		if (!bLastFrameDumped)
+		// 		{
+		// 			#ifdef _WIN32
+		// 				bAVIDumping = AVIDump::Start(nullptr, w, h);
+		// 			#else
+		// 				bAVIDumping = AVIDump::Start(w, h);
+		// 			#endif
+		// 			if (!bAVIDumping)
+		// 			{
+		// 				OSD::AddMessage("AVIDump Start failed", 2000);
+		// 			}
+		// 			else
+		// 			{
+		// 				OSD::AddMessage(StringFromFormat(
+		// 							"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+		// 							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
+		// 			}
+		// 		}
+		// 		if (bAVIDumping)
+		// 		{
+		// 			#ifndef _WIN32
+		// 				FlipImageData(&frame_data[0], w, h);
+		// 			#endif
+		//
+		// 				AVIDump::AddFrame(&frame_data[0], w, h);
+		// 		}
+		//
+		// 		bLastFrameDumped = true;
+		// 	}
+		// 	else
+		// 	{
+		// 		NOTICE_LOG(VIDEO, "Error reading framebuffer");
+		// 	}
+		// }
+		// else
+		// {
+		// 	if (bLastFrameDumped && bAVIDumping)
+		// 	{
+		// 		std::vector<u8>().swap(frame_data);
+		// 		w = h = 0;
+		// 		AVIDump::Stop();
+		// 		bAVIDumping = false;
+		// 		OSD::AddMessage("Stop dumping frames", 2000);
+		// 	}
+		// 	bLastFrameDumped = false;
+		// }
 #else
 		if (SConfig::GetInstance().m_DumpFrames)
 		{

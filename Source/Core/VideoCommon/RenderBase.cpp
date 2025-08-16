@@ -83,7 +83,7 @@ Renderer::Renderer()
 	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
-	bAVIDumping = false;
+	// bAVIDumping = false;
 #endif
 
 	OSDChoice = 0;
@@ -98,11 +98,11 @@ Renderer::~Renderer()
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 #if defined _WIN32 || defined HAVE_LIBAV
-	if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
-		AVIDump::Stop();
+	// if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
+	// 	AVIDump::Stop();
 #else
-	if (pFrameDump.IsOpen())
-		pFrameDump.Close();
+	// if (pFrameDump.IsOpen())
+	// 	pFrameDump.Close();
 #endif
 }
 

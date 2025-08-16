@@ -44,7 +44,7 @@ public:
 
 	bool is_connected;
 
-#ifdef USE_UPNP
+#if _WIN_32
 	void TryPortmapping(u16 port);
 #endif
 
@@ -95,7 +95,7 @@ private:
 	std::thread m_thread;
 	sf::Selector<sf::SocketTCP> m_selector;
 
-#ifdef USE_UPNP
+#if _WIN_32
 	static void mapPortThread(const u16 port);
 	static void unmapPortThread();
 

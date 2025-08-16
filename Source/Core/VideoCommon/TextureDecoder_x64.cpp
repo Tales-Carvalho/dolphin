@@ -16,7 +16,7 @@
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
 #include <emmintrin.h>
-#elif _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
+#elif (_M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)) || defined __GNUC__
 #include <tmmintrin.h>
 #endif
 

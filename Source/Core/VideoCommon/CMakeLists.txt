@@ -50,9 +50,9 @@ if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})
 endif()
 
-if(LIBAV_FOUND OR WIN32)
-	set(SRCS ${SRCS} AVIDump.cpp)
-endif()
+# if(LIBAV_FOUND OR WIN32)
+# 	set(SRCS ${SRCS} AVIDump.cpp)
+# endif()
 
 add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
